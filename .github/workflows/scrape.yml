@@ -1,4 +1,4 @@
-name: "Scrape showtimes"
+name: "Legacy multi-theatre scraper (manual only in personal fork)"
 
 # Scheduled (cron) runs only execute on the repository's default branch once
 # this workflow file is merged there. Use workflow_dispatch to test the
@@ -18,8 +18,6 @@ on:
         description: "Ignore stored booking horizons and rescan from today (slow; use to backfill)"
         type: boolean
         default: false
-  schedule:
-    - cron: "*/15 * * * *"
 
 concurrency:
   # Scheduled runs share one group, so a slow tick is superseded by the next
