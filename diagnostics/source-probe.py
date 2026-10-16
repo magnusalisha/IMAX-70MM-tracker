@@ -31,6 +31,22 @@ def get(name, url, parse=False):
   else:
    title=re.search(r'<title[^>]*>(.*?)</title>',body,re.S|re.I)
    result['title']=unescape(title.group(1)) if title else None
+   if name.startswith('atom'):
+    from html.parser import HTMLParser
+    class Links(HTMLParser):
+     def __init__(self):super().__init__();self.shows=[];self.current=None
+     def handle_starttag(self, tag, attrs):
+      d=dict(attrs)
+      if tag=='a' and d.get('href','').startswith('/checkout/') and d.get('data-vrs-showtime'):
+       self.current={'url':'https://www.atomtickets.com'+d['href'],'metadata':json.loads(d['data-vrs-showtime']),'label':''}
+     def handle_data(self, data):
+      if self.current:self.current['label']+=data
+     def handle_endtag(self,tag):
+      if tag=='a' and self.current:self.current['label']=self.current['label'].strip();self.shows.append(self.current);self.current=None
+    parser=Links();parser.feed(body);result['samples']=parser.shows
+    result['dateLabels']=re.findall(r'Showtimes for [^<]+',body)[:3]
+    result['venueConfirmed']='AMC Lincoln Square 13' in body
+    result['movieConfirmed']=[title for title in ['The Odyssey','Dune: Part Three'] if title in body]
    if name.startswith('bigscreen'):
     result['dateHeader']=re.findall(r'<h2>Showtimes.*?</h2>',body)
     sample=[]
@@ -55,6 +71,9 @@ for day in [str(TODAY),'2026-12-18']:
  get('bigscreen-'+day,'https://www.bigscreen.com/Marquee.php?theater=164&view=sched&showdate='+day)
 get('atom','https://www.atomtickets.com/theaters/amc-lincoln-square-13/164')
 get('tribute','https://www.tributemovies.com/cinema/New-York/New-York/AMC-Lincoln-Square-13/7511/')
+get('atom-dune-future','https://www.atomtickets.com/movies/359230/showtimes?localDate=2026-12-18T02%3A00%3A00-05%3A00&venueId=164')
+get('atom-odyssey-today','https://www.atomtickets.com/movies/377232/showtimes?localDate=2026-10-16T02%3A00%3A00-04%3A00&venueId=164')
+get('atom-ticket-page','https://www.atomtickets.com/checkout/642708403')
 # Read only the first redirects; never solve queues or submit ticketing forms.
 from urllib.parse import urlparse, parse_qs
 class TraceRedirect(urllib.request.HTTPRedirectHandler):
