@@ -55,6 +55,23 @@ for day in [str(TODAY),'2026-12-18']:
  get('bigscreen-'+day,'https://www.bigscreen.com/Marquee.php?theater=164&view=sched&showdate='+day)
 get('atom','https://www.atomtickets.com/theaters/amc-lincoln-square-13/164')
 get('tribute','https://www.tributemovies.com/cinema/New-York/New-York/AMC-Lincoln-Square-13/7511/')
+# Read only the first redirects; never solve queues or submit ticketing forms.
+from urllib.parse import urlparse, parse_qs
+class TraceRedirect(urllib.request.HTTPRedirectHandler):
+ def redirect_request(self, request, fp, code, msg, headers, newurl):
+  q=parse_qs(urlparse(newurl).query)
+  self.hops.append({'status':code,'host':urlparse(newurl).hostname,'path':urlparse(newurl).path,'selection':{k:q[k] for k in ['tid','mid','sdate'] if k in q}})
+  if len(self.hops)>=2: return None
+  return super().redirect_request(request,fp,code,msg,headers,newurl)
+for r in list(results):
+ if r['source']=='bigscreen-2026-12-18':
+  links=[x['url'] for sample in r.get('samples',[]) for x in sample['links']]
+  for url in links[:2]:
+   trace=TraceRedirect();trace.hops=[]
+   try: urllib.request.build_opener(trace).open(url,timeout=20).close()
+   except Exception: pass
+   result={'source':'bigscreen-ticket-redirect','url':url,'hops':trace.hops}
+   results.append(result);print(json.dumps(result),flush=True)
 # Follow one returned exact-screening URL, without selecting seats or buying.
 for result in list(results):
  if result['source']=='fandango-2026-12-18':
