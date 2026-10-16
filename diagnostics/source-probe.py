@@ -9,7 +9,7 @@ results=[]
 def get(name, url, parse=False):
  result={'source':name,'requested':url,'checkedAt':datetime.datetime.now(datetime.timezone.utc).isoformat()}
  try:
-  request=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0','Accept':'application/json,text/html;q=0.9'})
+  request=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36','Referer':'https://www.fandango.com/amc-lincoln-square-13-aabqi/theater-page','Accept':'application/json,text/html;q=0.9'})
   with urllib.request.urlopen(request, timeout=25) as response:
    body=response.read().decode('utf-8',errors='replace')
    result.update(status=response.status,url=response.url,bytes=len(body),serverDate=response.headers.get('Date'),age=response.headers.get('Age'))
