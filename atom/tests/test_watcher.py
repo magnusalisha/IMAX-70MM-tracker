@@ -3,6 +3,7 @@ import datetime as dt
 import html
 import json
 import os
+import subprocess
 from pathlib import Path
 import tempfile
 import unittest
@@ -162,6 +163,10 @@ class CoreTests(unittest.TestCase):
 
 
 class ParserTests(unittest.TestCase):
+    def test_login_captcha_script_is_not_a_visible_challenge(self):
+        page = w.Page('<h1>AMC Lincoln Square 13</h1><script>var captchaInit = function() {};</script><style>.captcha {}</style>')
+        self.assertEqual(page.visible, "AMC Lincoln Square 13")
+
     def test_real_standard_odyssey_not_imax(self):
         self.assertEqual(w.parse_fragment((FIXTURES / "odyssey-standard.html").read_text(), dt.date(2026, 10, 17)), [])
 
@@ -219,6 +224,28 @@ class ParserTests(unittest.TestCase):
 
 
 class TransportTests(unittest.TestCase):
+    def test_git_store_push_is_required_before_delivery(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            remote, checkout = root / "remote.git", root / "checkout"
+            def git(*args):
+                return subprocess.run(["git", *map(str, args)], check=True, capture_output=True, text=True).stdout
+            git("init", "--bare", remote)
+            git("init", "-b", "atom-state", checkout)
+            git("-C", checkout, "remote", "add", "origin", remote)
+            store = w.GitStore(checkout)
+            store.save(w.initial_state())
+            state = json.loads(git("--git-dir", remote, "show", "atom-state:atom-state.json"))
+            self.assertEqual(state, w.initial_state())
+            hook = remote / "hooks" / "pre-receive"
+            hook.write_text("#!/bin/sh\nexit 1\n")
+            hook.chmod(0o755)
+            with self.assertRaises(subprocess.CalledProcessError):
+                w.run_cycle(state, lambda: scan(show()), store.save,
+                            lambda _: self.fail("send after rejected push"),
+                            lambda: self.fail("ping after rejected push"), NOW)
+            self.assertIsNone(json.loads(git("--git-dir", remote, "show", "atom-state:atom-state.json"))["baselineAt"])
+
     @patch.dict(os.environ, {"PUSHOVER_APP_TOKEN": "fake", "PUSHOVER_USER_KEY": "fake"})
     def test_provider_requires_explicit_ack_and_clickable_links(self):
         def http(url, data):

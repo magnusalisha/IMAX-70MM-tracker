@@ -61,6 +61,7 @@ class Page(HTMLParser):
         self.preorders = set()
         self.shows = []
         self.current = None
+        self.hidden_code = 0
         self.feed(body)
         self.close()
         if self.current:
@@ -70,6 +71,11 @@ class Page(HTMLParser):
             raise InvalidData("Atom security challenge")
 
     def handle_starttag(self, tag, attrs):
+        if tag in ("script", "style"):
+            self.hidden_code += 1
+            return
+        if self.hidden_code:
+            return
         a = dict(attrs)
         if tag != "a":
             return
@@ -94,11 +100,18 @@ class Page(HTMLParser):
                             "label": "", "disabled": "disabled" in a.get("class", "")}
 
     def handle_data(self, value):
+        if self.hidden_code:
+            return
         self.text.append(value)
         if self.current is not None:
             self.current["label"] += value
 
     def handle_endtag(self, tag):
+        if tag in ("script", "style"):
+            self.hidden_code = max(0, self.hidden_code - 1)
+            return
+        if self.hidden_code:
+            return
         if tag == "a" and self.current is not None:
             self.current["label"] = " ".join(self.current["label"].split())
             self.shows.append(self.current)
