@@ -72,6 +72,8 @@ describe("Lincoln Square personal watcher", () => {
   });
   it("does not silently reset corrupt history", () => {
     expect(() => parseState({ version: 0 })).toThrow();
+    expect(() => parseState({ ...emptyState(), observed: [] })).toThrow();
+    expect(() => parseState({ ...emptyState(), observed: { invalid: show() } })).toThrow();
     expect(parseState(JSON.parse(JSON.stringify(emptyState())))).toEqual(emptyState());
   });
   it("rejects malformed target dates and forged showtime ids", () => {

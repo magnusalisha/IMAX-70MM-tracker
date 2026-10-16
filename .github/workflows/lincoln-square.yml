@@ -18,7 +18,7 @@ jobs:
   watch:
     # Activation is explicit and comes only after testing and SMTP setup.
     if: github.event_name == 'workflow_dispatch' || vars.WATCHER_ENABLED == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.WATCHER_RUNNER || 'ubuntu-latest' }}
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4

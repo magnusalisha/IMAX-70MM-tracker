@@ -86,3 +86,25 @@ npm run typecheck
 Dry runs do not send email or change history. `watcher-report.json` contains the
 findings. The live runner refuses missing or corrupt state rather than silently
 resetting dedupe. Keep the state branch and its Git history.
+
+## Home-computer fallback
+
+The live GitHub-hosted dry run on October 16, 2026 encountered AMC HTTP 403 /
+bot challenges, including with the original scraper's browser identification.
+Do not activate the hosted schedule on that evidence.
+
+A home runner is supported but not installed or verified yet:
+
+1. On an always-on Linux or macOS computer on your home connection, use this
+   fork's Settings → Actions → Runners → New self-hosted runner. Follow GitHub's
+   OS-specific installation steps. Give it the custom label `lincoln-square-home`.
+2. Set the repository variable `WATCHER_RUNNER` to `lincoln-square-home`. Only the
+   personal scanning workflow uses that runner. The independent heartbeat check
+   stays on GitHub, so it can notice a home machine that stops scanning.
+3. Keep `WATCHER_ENABLED=false`. Manually run mode `dry-run` and verify a complete
+   scan. Then test a manual live scan and check the history branch.
+4. Only after success, enable the schedule. Keep the computer awake and online.
+   AMC may also challenge home connections; this fallback still requires testing.
+
+The test suite remains on GitHub-hosted machines. Avoid running untrusted code
+on the machine holding your runner and email credentials.

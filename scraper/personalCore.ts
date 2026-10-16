@@ -24,8 +24,14 @@ export const emptyState = (): WatchState => ({
 });
 export function parseState(value: unknown): WatchState {
   const s = value as WatchState;
+  const object = (v: unknown): v is Record<string, unknown> => !!v && typeof v === "object" && !Array.isArray(v);
   if (!s || s.version !== 1 || typeof s.initialized !== "boolean" ||
-      !s.observed || !s.delivered || !s.healthDelivered ||
+      !object(s.observed) || !object(s.delivered) || !object(s.healthDelivered) ||
+      Object.entries(s.observed).some(([key, item]) => !object(item) ||
+        typeof item.externalId !== "string" || key !== `amc-lincoln-square-13:${item.externalId}` ||
+        typeof item.startsAt !== "string" || !Number.isFinite(Date.parse(item.startsAt)) ||
+        typeof item.format !== "string" || typeof item.movieTitle !== "string") ||
+      Object.values(s.healthDelivered).some(status => status !== "ok" && status !== "failed") ||
       !["unknown", "ok", "failed"].includes(s.health) ||
       !(s.lastScanAt === null || (typeof s.lastScanAt === "string" && Number.isFinite(Date.parse(s.lastScanAt)))) ||
       Object.values(s.delivered).some(v => !Array.isArray(v) || v.some(id => typeof id !== "string"))) {
