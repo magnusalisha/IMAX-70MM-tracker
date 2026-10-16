@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "initialized": false,
+  "observed": {},
+  "delivered": {},
+  "lastScanAt": null,
+  "health": "unknown",
+  "healthDelivered": {}
+}
