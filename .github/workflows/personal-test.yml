@@ -1,17 +1,49 @@
-name: Read-only showtime source validation
+name: Read-only Atom validation
 on:
   workflow_dispatch:
+    inputs:
+      mode:
+        type: choice
+        options: [browser, observe]
+        default: browser
+      minutes:
+        type: number
+        default: 120
 permissions:
   contents: read
 jobs:
-  probe:
+  browser:
+    if: inputs.mode == 'browser'
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - run: python3 diagnostics/source-probe.py
-      - uses: actions/upload-artifact@v4
+      - uses: actions/setup-node@v4
         with:
-          name: source-probe-results
-          path: source-probe-results.json
-          retention-days: 7
+          node-version: 22
+      - run: npm ci
+        working-directory: scraper
+      - run: npx playwright install --with-deps chromium
+        working-directory: scraper
+      - run: node diagnostics/atom-browser.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: atom-browser-results
+          path: atom-browser-results/
+          retention-days: 14
+  observe:
+    if: inputs.mode == 'observe'
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 diagnostics/atom-observe.py
+        env:
+          OBSERVE_MINUTES: ${{ inputs.minutes }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: atom-observations
+          path: atom-observations/
+          retention-days: 14
