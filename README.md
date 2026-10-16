@@ -1,3 +1,9 @@
+# Personal Lincoln Square fork
+
+The active implementation in this fork is documented in [personal/README.md](personal/README.md). It watches only The Odyssey in IMAX 70mm at AMC Lincoln Square 13, using GitHub Actions and a separate history branch. Scheduled personal monitoring is gated by `WATCHER_ENABLED` until verified. The original project documentation follows for reference.
+
+---
+
 # IMAX 70mm Tracker
 
 **Get an email the moment a real IMAX 70mm film print goes on sale at your theatre — usually within 15 minutes of the tickets appearing.**

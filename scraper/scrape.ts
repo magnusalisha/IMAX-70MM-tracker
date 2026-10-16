@@ -123,7 +123,7 @@ function looksLikeCloudflareChallenge(title: string, bodyText: string): boolean 
 // AWAITS"). We walk each section in document order, tracking the current format
 // heading, and attach it to the showtimes that follow. Self-contained (no outer
 // closure refs) so it serializes into page.evaluate.
-function extractAmcInPage(): RawAmcRecord[] {
+export function extractAmcInPage(): RawAmcRecord[] {
   // "FORMAT: TAGLINE" where the tagline is all-caps — this uppercase tagline
   // requirement is what excludes time labels like "10:30pm" and attribute chips.
   const HEAD_RE = /^([A-Za-z0-9][A-Za-z0-9 &'/.+-]{1,40}):\s+[A-Z0-9][A-Z0-9 ,'&./-]{3,}$/;

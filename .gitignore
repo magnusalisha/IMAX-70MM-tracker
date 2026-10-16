@@ -13,3 +13,8 @@ run-regal.cmd
 
 # Transient planning artifact (see CLAUDE.md: delete after execution)
 plan.md
+
+# Personal watcher local state and diagnostics
+watcher-state/
+watcher-report.json
+personal/*.local.json

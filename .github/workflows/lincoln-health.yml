@@ -1,0 +1,34 @@
+name: Lincoln Square heartbeat watchdog
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '11,41 * * * *'
+permissions:
+  contents: write
+concurrency:
+  group: lincoln-square-state
+  cancel-in-progress: false
+jobs:
+  health:
+    if: vars.WATCHER_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          ref: watcher-state
+          path: watcher-state
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+        working-directory: scraper
+      - name: Check last successful full scan
+        working-directory: scraper
+        env:
+          WATCHER_RECIPIENTS: ${{ secrets.WATCHER_RECIPIENTS }}
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          WATCHER_GIT_STATE: 'true'
+        run: npx tsx personalWatch.ts --watchdog

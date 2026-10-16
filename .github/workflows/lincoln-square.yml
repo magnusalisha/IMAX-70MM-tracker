@@ -1,0 +1,59 @@
+name: Lincoln Square personal watcher
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        type: choice
+        description: Dry run never sends email or changes history
+        options: [dry-run, live, test-email]
+        default: dry-run
+  schedule:
+    - cron: '7,22,37,52 * * * *'
+permissions:
+  contents: write
+concurrency:
+  group: lincoln-square-state
+  cancel-in-progress: false
+jobs:
+  watch:
+    # Activation is explicit and comes only after testing and SMTP setup.
+    if: github.event_name == 'workflow_dispatch' || vars.WATCHER_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          ref: watcher-state
+          path: watcher-state
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: scraper/package-lock.json
+      - run: npm ci
+        working-directory: scraper
+      - run: npx playwright install --with-deps chromium
+        working-directory: scraper
+      - name: Scan Lincoln Square
+        working-directory: scraper
+        env:
+          MODE: ${{ github.event_name == 'schedule' && 'live' || inputs.mode }}
+          WATCHER_RECIPIENTS: ${{ secrets.WATCHER_RECIPIENTS }}
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          WATCHER_GIT_STATE: 'true'
+        run: |
+          case "$MODE" in
+            dry-run) npx tsx personalWatch.ts --dry-run ;;
+            live) npx tsx personalWatch.ts ;;
+            test-email) npx tsx personalWatch.ts --test-email ;;
+            *) exit 1 ;;
+          esac
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lincoln-square-report
+          path: watcher-report.json
+          if-no-files-found: ignore
+          retention-days: 14

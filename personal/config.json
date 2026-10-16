@@ -1,0 +1,13 @@
+{
+  "theatre": {
+    "chain": "AMC",
+    "externalId": "amc-lincoln-square-13",
+    "name": "AMC Lincoln Square 13",
+    "city": "New York, NY",
+    "timeZone": "America/New_York",
+    "showtimesUrl": "https://www.amctheatres.com/movie-theatres/new-york-city/amc-lincoln-square-13/showtimes"
+  },
+  "movie": { "title": "The Odyssey", "movieIds": ["76238", "80679"] },
+  "scanDays": 60,
+  "targetDates": []
+}
