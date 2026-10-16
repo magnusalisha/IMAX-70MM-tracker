@@ -16,7 +16,8 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - run: cd scraper && npm ci
       - run: npx prisma generate
       - run: npm run typecheck
       - run: npm test
-      - run: cd scraper && npm ci && npm run typecheck
+      - run: cd scraper && npm run typecheck

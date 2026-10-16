@@ -18,7 +18,11 @@ export function assertAmcPage(url: string, title: string, body: string, recordCo
 async function extractDate(page: Page, c: PersonalConfig, date: string) {
   const url = new URL(c.theatre.showtimesUrl); url.searchParams.set("date", date);
   const response = await page.goto(url.toString(), { waitUntil: "domcontentloaded", timeout: 45000 });
-  if (!response?.ok()) throw new Error(`AMC HTTP ${response?.status() ?? "unknown"}`);
+  // AMC sometimes returns a challenge document first. Give its ordinary
+  // browser navigation a bounded chance to settle, without solving challenges
+  // or treating an access-denied response as empty showtimes.
+  if (response?.status() === 403) await page.waitForTimeout(7000);
+  if (!response || response.status() >= 500) throw new Error(`AMC HTTP ${response?.status() ?? "unknown"}`);
   // Allow lazy experience groups to populate before extraction.
   for (let y = 0; y < 6; y++) {
     await page.evaluate(n => window.scrollTo(0, n * window.innerHeight), y);
@@ -34,6 +38,8 @@ export async function scanLincoln(c: PersonalConfig, onDate?: (date: string, rec
   const browser = await chromium.launch({ headless: true });
   try {
     const context = await browser.newContext({
+      // Match the upstream scraper's ordinary desktop browser identification.
+      userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
       locale: "en-US", timezoneId: c.theatre.timeZone, viewport: { width: 1280, height: 800 },
     });
     const page = await context.newPage();

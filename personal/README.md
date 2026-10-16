@@ -68,8 +68,8 @@ Repository Actions variable `WATCHER_ENABLED` defaults to false. Only set it to
    watcher. This fork never changes or disables the prior ChatGPT watcher.
 
 Use the source from the fork, not upstream. The inherited `scrape.yml` is a
-legacy Vercel workflow, not the personal watcher; it has no APP_URL/CRON_SECRET
-configured here and should not be used for personal monitoring.
+manual-only legacy Vercel workflow in this fork, not the personal watcher; it
+has no APP_URL/CRON_SECRET configured here and should not be used for personal monitoring.
 
 ## Local verification
 
