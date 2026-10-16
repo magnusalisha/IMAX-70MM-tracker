@@ -1,27 +1,17 @@
-name: Personal watcher tests
+name: Read-only showtime source validation
 on:
-  push:
-    branches: [main, lincoln-square-personal]
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
-  verify:
+  probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - run: python3 diagnostics/source-probe.py
+      - uses: actions/upload-artifact@v4
         with:
-          node-version: 22
-      - run: npm ci
-      - run: npm ci
-        working-directory: scraper
-      - run: npm test
-      - run: npm run typecheck
-      - run: npm run typecheck
-        working-directory: scraper
-      - run: npx playwright install --with-deps chromium
-        working-directory: scraper
-      - run: npx tsx personalSmoke.ts
-        working-directory: scraper
+          name: source-probe-results
+          path: source-probe-results.json
+          retention-days: 7
