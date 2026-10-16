@@ -382,7 +382,7 @@ def main():
     args = parser.parse_args()
     if args.mode == "probe":
         scan = collect()
-        print(json.dumps({"mode": "read-only", "scope": SCOPE, **scan}, indent=2))
+        print(json.dumps({"mode": "read-only", "observedAt": stamp(), "scope": SCOPE, **scan}, indent=2))
         return
     # CLI and workflow both enforce explicit activation. No notifications or
     # health pings from probe/tests. Credentials are not inspected by probe.

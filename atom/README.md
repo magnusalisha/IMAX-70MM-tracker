@@ -111,6 +111,11 @@ delivery; those are separate final tests.
 ## Tests and remaining approval stages
 
 CI runs `PYTHONPATH=atom python -m unittest discover -s atom/tests -v`.
+The [implementation cloud validation](https://github.com/magnusalisha/IMAX-70MM-tracker/actions/runs/38942635915)
+passed all **22 tests**, then successfully checked **57 dates** through January
+13, 2027 using the actual production parser. It found zero Odyssey IMAX70MM
+screenings, while correctly accepting scoped COMING SOON fragments. This
+confirms broad calendar traversal, not publication latency or scheduled cadence.
 Tests cover silent baseline; new dates; extra same-date screenings; stored IDs
 after restart; grouping, Eastern DST and exact links; failed/rejected delivery
 and retry; pre-send durable barrier; missing/corrupt state; partial source failure;
