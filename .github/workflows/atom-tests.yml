@@ -1,0 +1,31 @@
+name: Atom watcher tests and read-only cloud probe
+on:
+  push:
+    branches: [atom-personal-watcher]
+  pull_request:
+    paths: ['atom/**', '.github/workflows/atom-*.yml']
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Simulate detection, persistence, retries and health
+        run: python -m unittest discover -s atom/tests -v
+        env:
+          PYTHONPATH: atom
+      - name: Read-only cloud source probe (no state or service credentials)
+        if: github.event_name == 'push'
+        run: python atom/watcher.py probe > atom-probe.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: atom-read-only-probe
+          path: atom-probe.json
+          if-no-files-found: ignore
+          retention-days: 14

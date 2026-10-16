@@ -1,8 +1,6 @@
 name: Lincoln Square heartbeat watchdog
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '11,41 * * * *'
 permissions:
   contents: write
 concurrency:
@@ -10,7 +8,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   health:
-    if: vars.WATCHER_ENABLED == 'true'
+    if: ${{ false }} # Retired AMC path; Atom replacement is separately gated.
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:

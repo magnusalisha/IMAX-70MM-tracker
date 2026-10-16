@@ -1,0 +1,51 @@
+name: Atom Odyssey watcher (inactive; approval required)
+on:
+  # Deliberately NO schedule until iPhone/service and cadence validation and
+  # separate human activation approval. Proposed cron: 3,13,23,33,43,53 * * * *.
+  workflow_dispatch:
+    inputs:
+      mode:
+        type: choice
+        options: [probe, live]
+        default: probe
+        description: Live additionally requires WATCHER_ENABLED=true
+permissions:
+  contents: write
+concurrency:
+  group: atom-odyssey-state
+  cancel-in-progress: false
+jobs:
+  probe:
+    if: inputs.mode == 'probe'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python atom/watcher.py probe > atom-probe.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: atom-probe
+          path: atom-probe.json
+  live:
+    if: inputs.mode == 'live' && vars.WATCHER_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          ref: atom-state
+          path: atom-state
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Complete scan, durable outbox, then independent success ping
+        run: python atom/watcher.py live
+        env:
+          WATCHER_ENABLED: ${{ vars.WATCHER_ENABLED }}
+          PUSHOVER_APP_TOKEN: ${{ secrets.PUSHOVER_APP_TOKEN }}
+          PUSHOVER_USER_KEY: ${{ secrets.PUSHOVER_USER_KEY }}
+          HEALTHCHECKS_PING_URL: ${{ secrets.HEALTHCHECKS_PING_URL }}
